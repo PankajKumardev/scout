@@ -32,6 +32,13 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# compiled C ranker
+/c-backend/scout
+
+# taste-skill working files
+.taste-skill/
 
 # vercel
 .vercel
