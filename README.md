@@ -1,5 +1,7 @@
 # SCOUT
 
+[Two-person viva practice](VIVA-PRACTICE.md) · [Code walkthrough](CODE-WALKTHROUGH.md)
+
 SCOUT (Smart Research Assistant) is a college mini project for Data Structures using C.
 
 You type a question on a website. The site searches the web, a C program ranks the pages with a queue, a linked list, linear search, and bubble sort, and then a language model writes a short answer from the best pages. The answer uses numbered citations that match the source cards on the screen.
@@ -25,8 +27,8 @@ Next.js API route  (app/api/research/route.ts)
   v
 Compiled C program  c-backend/scout
   |  read question and pages from stdin
-  |  put ids in a queue
-  |  dequeue one id at a time
+  |  put array indexes in a queue
+  |  dequeue one index at a time
   |  linear search: skip a URL already in the list
   |  add unique pages to a linked list and score them
   |  copy scores into an array
@@ -49,7 +51,7 @@ Citation `[1]` is the first card. That card is the highest scoring page C kept. 
 | Next.js page | The screen you type into | Ranking |
 | `POST /api/research` | Calls Firecrawl, starts C, calls Groq | Sorting or duplicate checks |
 | Firecrawl | Finds real web pages | Choosing the best pages |
-| `scout.c` | Queue, linked list, linear search, bubble sort, scores | Internet calls, JSON, the paragraph |
+| `c-backend/*.c` | Queue, linked list, linear search, bubble sort, scores | Internet calls, JSON, the paragraph |
 | Groq | Writes the short answer from the pages C selected | Searching or ranking |
 | shadcn/ui | Buttons, field, cards, badges, skeletons | Any data-structure work |
 
@@ -75,12 +77,12 @@ GROQ_MODEL=openai/gpt-oss-20b
 If `GROQ_MODEL` is missing, the server uses `openai/gpt-oss-20b`.
 
 ```bash
-gcc c-backend/scout.c -o c-backend/scout
+npm run compile
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). `npm run compile` is the same gcc command.
+Open [http://localhost:3000](http://localhost:3000). `npm run compile` builds the C executable from all three source files.
 
 The keys stay on the server. The browser never receives them. The C program never sees them either. C only receives the question and the page text.
 
@@ -95,7 +97,7 @@ The keys stay on the server. The browser never receives them. The C program neve
 
 ## The C program, line by line of the idea
 
-File: `c-backend/scout.c`. One file. Plain functions. No extra libraries.
+The C files share declarations in `scout.h`. The entry point is `scout.c`, data structures are in `structures.c`, and keyword scoring is in `scoring.c`.
 
 ### Input and output
 
@@ -118,7 +120,7 @@ Stdout is only this, one selected page per line:
 id score
 ```
 
-Anything a human might want to watch (keywords, enqueue, duplicate skipped, sorted list) goes to stderr. That keeps stdout machine-readable.
+Anything a human might want to watch (dequeued page, duplicate skipped, sorted list) goes to stderr. That keeps stdout machine-readable.
 
 The route starts the binary with `spawn(executable, [])`. It does not build a shell string from the question, so the question cannot be turned into a command.
 
@@ -128,12 +130,12 @@ The route starts the binary with `spawn(executable, [])`. It does not build a sh
 
 `struct Queue` holds `items[10]`, `front`, and `rear`.
 
-- `enqueue` writes the id at `rear`, then adds 1 to `rear`.
-- `dequeue` reads the id at `front`, then adds 1 to `front`.
+- `enqueue` writes the index at `rear`, then adds 1 to `rear`.
+- `dequeue` reads the index at `front`, then adds 1 to `front`.
 - The queue is empty when `front >= rear`.
-- It is not circular. Ten ids do not need wrap-around.
+- It is not circular. Ten entries do not need wrap-around.
 
-The ids are placed in the queue first. Then `main` dequeues one id at a time. That is the "process one page at a time" step. The pages themselves wait in a plain array called `incoming` until their id comes out of the queue.
+The queue holds positions in the `incoming` array. Dequeuing position 0 gives direct access to the first page.
 
 Enqueue and dequeue are O(1).
 
@@ -175,7 +177,6 @@ The queue and the ranking array are local variables in `main`. They disappear wh
 
 That is O(n). With at most 10 pages, a faster search is not useful.
 
-`findIncoming` is the same idea on the input array: walk until the id matches.
 
 **4. Bubble sort**
 
@@ -320,7 +321,10 @@ scout/
 │   ├── research-result.tsx      Answer, sources, algorithm cards
 │   └── ui/                      shadcn components
 ├── c-backend/
-│   ├── scout.c                  The ranking engine
+│   ├── scout.c                  Read, rank and print
+│   ├── scout.h                  Shared declarations
+│   ├── scoring.c                Keywords and scores
+│   ├── structures.c             Queue, list and sort
 │   ├── sample-input.txt         Offline test input
 │   └── sample-output.txt        Expected stdout
 ├── lib/utils.ts                 shadcn class helper
@@ -335,9 +339,9 @@ Do not commit `.env.local` or the compiled `c-backend/scout` binary. Both are gi
 
 **Why not only an array?** An array would hold 10 pages. The list is here so the program uses nodes, pointers, `malloc`, and `free`. The queue and the sort still use arrays, because those two topics are array topics.
 
-**What are front and rear?** `rear` is where the next id is written. `front` is where the next id is read.
+**What are front and rear?** `rear` is where the next index is written. `front` is where the next index is read.
 
-**Why is the queue not circular?** At most 10 ids are stored, and slots are not reused.
+**Why is the queue not circular?** At most 10 indexes are stored, and slots are not reused.
 
 **How is a duplicate stopped?** `sourceExists` walks the linked list and compares URLs. Sample id 4 is the demo.
 

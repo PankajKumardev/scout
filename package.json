@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "compile": "gcc c-backend/scout.c -o c-backend/scout"
+    "compile": "gcc -std=c11 c-backend/*.c -o c-backend/scout"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

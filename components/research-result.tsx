@@ -30,7 +30,7 @@ export const STEPS = [
   {
     name: "Queue",
     detail:
-      "Webpage ids wait in a line. The C program takes the front id, then the next, until the line is empty.",
+      "Each page’s array index joins the queue. C takes the front index and reads that page.",
   },
   {
     name: "Linked list",

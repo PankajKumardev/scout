@@ -1,6 +1,6 @@
 # SCOUT viva notes
 
-These notes are for a Data Structures lab viva. The explanations match the code in `c-backend/scout.c`.
+These notes are for a Data Structures lab viva. The explanations match the code in `c-backend/`.
 
 ## What SCOUT does
 
@@ -16,7 +16,7 @@ There is no login and no database. Each question is handled once and then forgot
 
 ## Why C is used
 
-The lab is about data structures in C. The linked list, queue, linear search, and bubble sort all live in `scout.c`, where you can point at them.
+The lab is about data structures in C. The linked list, queue, linear search, and bubble sort all live in `structures.c`, where you can point at them.
 
 Next.js does not rank the pages. It only:
 
@@ -101,7 +101,7 @@ struct Source {
 
 One `struct Source` is one webpage. `title`, `url`, and `snippet` are fixed character arrays. `score` is the rank we calculate. `next` links this page to the following page.
 
-`struct Queue` is another structure. It holds the id array plus `front` and `rear`, so the queue data stays together.
+`struct Queue` is another structure. It holds the array of input positions plus `front` and `rear`, so the queue data stays together.
 
 `struct Ranked` is smaller. It holds only an id and a score for sorting.
 
@@ -155,12 +155,12 @@ When `main` finishes, every node has been freed. The queue and the ranking array
 
 ## What a queue is, and where SCOUT uses it
 
-A queue is a line. The first id to enter is the first id to leave (FIFO: first in, first out).
+The first array index to enter is the first to leave (FIFO: first in, first out).
 
 SCOUT's queue is a fixed integer array of size 10, plus two indexes:
 
 - `rear` is the next empty slot. `enqueue` writes `items[rear]`, then adds 1 to `rear`.
-- `front` is the next id to serve. `dequeue` reads `items[front]`, then adds 1 to `front`.
+- `front` is the next position to serve. `dequeue` reads `items[front]`, then adds 1 to `front`.
 - The queue is empty when `front >= rear`.
 
 It is not circular. With at most 10 pages, the indexes never need to wrap.
@@ -168,9 +168,9 @@ It is not circular. With at most 10 pages, the indexes never need to wrap.
 Flow:
 
 1. Read every page into a plain array called `incoming`. This array is only a waiting area.
-2. Enqueue each id.
-3. Dequeue one id at a time.
-4. Look up that id, reject a duplicate URL, and add a new page to the linked list.
+2. Enqueue each complete row’s array index.
+3. Dequeue one index at a time.
+4. Use that index to read the page, reject a duplicate URL, and add a new page to the linked list.
 
 The queue is how we force "one page at a time" instead of dumping every page straight into the list inside the read loop.
 
@@ -182,7 +182,6 @@ Linear search checks items one by one until it finds a match or reaches the end.
 
 That is enough because the list never holds more than 10 pages. There is no need for a faster search.
 
-The same idea appears when `findIncoming()` looks through the input array for an id. The duplicate check that the lab asks for is the URL search on the linked list.
 
 ## How bubble sort ranks sources
 
@@ -267,7 +266,7 @@ Firecrawl does not rank. Groq does not rank. C ranks.
 2. The route checks that the question is non-empty text, within 400 characters, and that both API keys exist.
 3. Firecrawl returns pages.
 4. The route turns them into the line-based stdin format and runs `c-backend/scout`.
-5. C queues the ids, filters duplicate URLs, builds the linked list, scores, bubble-sorts, and prints `id score`.
+5. C queues the row indexes, filters duplicate URLs, builds the linked list, scores, bubble-sorts, and prints `id score`.
 6. The route keeps those pages in the printed order and sends them to Groq.
 7. The browser shows the answer. Citation `[1]` links to source card 1, which is the highest-scoring page C kept.
 
@@ -279,10 +278,10 @@ If a key is missing, Firecrawl fails, Groq fails, nothing is found, or `scout` i
 A: An array would work for 10 pages. The list is here so the program actually uses nodes, pointers, `malloc`, and `free`. The queue and the sort still use arrays, because those two topics are array topics.
 
 **Q: What do front and rear mean?**
-A: `rear` is where the next id is written. `front` is where the next id is read. New ids go in at the rear. Serving an id happens at the front.
+A: `rear` is where the next index is written. `front` is where the next index is read. New indexes go in at the rear. Serving an index happens at the front.
 
 **Q: Why is the queue not circular?**
-A: We never store more than 10 ids, and we do not reuse slots. A circular queue would add extra index math for no benefit here.
+A: We never store more than 10 indexes, and we do not reuse slots. A circular queue would add extra index math for no benefit here.
 
 **Q: How do you stop a duplicate page?**
 A: Before `addSource`, `sourceExists` walks the linked list and compares URLs with `strcmp`. A match means the page is skipped. You can see this with id 4 in `sample-input.txt`.

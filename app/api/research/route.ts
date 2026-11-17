@@ -195,7 +195,7 @@ function runScout(input: string): Promise<{ stdout: string; stderr: string }> {
     return Promise.reject(
       new ResearchError(
         500,
-        "The C program is not compiled. In the project folder run: gcc c-backend/scout.c -o c-backend/scout",
+        "The C program is not compiled. In the project folder run: npm run compile",
       ),
     );
   }
@@ -229,7 +229,7 @@ function runScout(input: string): Promise<{ stdout: string; stderr: string }> {
       fail(
         new ResearchError(
           500,
-          "Could not start the C program. Compile it with: gcc c-backend/scout.c -o c-backend/scout",
+          "Could not start the C program. Compile it with: npm run compile",
         ),
       );
     });
