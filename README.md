@@ -122,7 +122,7 @@ id score
 
 Anything a human might want to watch (dequeued page, duplicate skipped, sorted list) goes to stderr. That keeps stdout machine-readable.
 
-The route starts the binary with `spawn(executable, [])`. It does not build a shell string from the question, so the question cannot be turned into a command.
+The route starts the binary with `execFile(executable, [])`. It does not build a shell string from the question, so the question cannot be turned into a command.
 
 ### The four data structures
 
@@ -247,7 +247,7 @@ Empty stdin prints `Missing question` on stderr and exits with code 1. A count o
 
 ## What Next.js does with that output
 
-`app/api/research/route.ts` is the only API route. It runs on the Node.js runtime so it can use `spawn`.
+`app/api/research/route.ts` is the only API route. It runs on the Node.js runtime so it can use `execFile`.
 
 1. Read `{ "question": "..." }`. Reject an empty question or a body that is not JSON.
 2. Require `FIRECRAWL_API_KEY` and `GROQ_API_KEY`.
@@ -312,7 +312,7 @@ A pointer stores an address. `next` is the address of the following node. `NULL`
 ```text
 scout/
 ├── app/
-│   ├── api/research/route.ts    Firecrawl, spawn C, Groq
+│   ├── api/research/route.ts    Coordinate search, ranking and answer writing
 │   ├── page.tsx                 Page shell
 │   ├── layout.tsx               Font and page title
 │   └── globals.css              Colors

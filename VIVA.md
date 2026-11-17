@@ -36,7 +36,7 @@ The browser sends:
 
 to `POST /api/research`.
 
-The route searches with Firecrawl, then starts the binary `c-backend/scout` with `spawn()`. The question is not pasted into a shell command. The route writes plain text into the program's **stdin** and reads **stdout**.
+The route searches with Firecrawl, then starts the binary `c-backend/scout` with `execFile()`. The question is not pasted into a shell command. The route writes plain text into the program's **stdin** and reads **stdout**.
 
 Stdin looks like this, one field per line:
 

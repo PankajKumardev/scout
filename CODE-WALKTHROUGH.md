@@ -680,5 +680,8 @@ Test each keyword once per field. A title hit adds two. A snippet hit adds one. 
 | --- | --- |
 | `app/page.tsx` | Opens the home page and mounts the question interface. |
 | `components/search-box.tsx` | Pankaj submits a question. The component sends JSON to the research route, then updates loading, error or result state. |
-| `app/api/research/route.ts` | searchWeb gets candidate pages. scoutInput writes one field per line. runScout starts the executable. selectPages maps its output IDs back to pages. writeAnswer sends that selection to Groq. |
+| `app/api/research/route.ts` | POST reads the question and calls searchWeb, rankPages and writeAnswer in order. It returns the answer and numbered sources. |
+| `app/api/research/providers.ts` | searchWeb calls Firecrawl. writeAnswer passes only ranked excerpts to Groq. Both use postJson for HTTP requests. |
+| `app/api/research/rank.ts` | scoutInput writes one field per line. runScout calls the C executable. selectPages matches its output IDs to the original pages. |
+| `app/api/research/shared.ts` | Defines page records, request errors and the one-line text limits used by C. |
 | `components/research-result.tsx` | Shivam follows a numbered citation from the answer to its source card. The process panel describes the C operations. |
