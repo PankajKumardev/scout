@@ -6,6 +6,7 @@
 static char keywords[MAX_KEYWORDS][MAX_WORD];
 static int keywordCount;
 
+// Check for common words like the and what
 static int isStopWord(const char *word) {
     const char *stops[] = {
         "the", "and", "for", "are", "what", "how", "why", "when",
@@ -17,9 +18,8 @@ static int isStopWord(const char *word) {
         "some", "such", "only", "other", "over", "where", "there",
         "here", NULL
     };
-    int i;
 
-    for (i = 0; stops[i] != NULL; i++) {
+    for (int i = 0; stops[i] != NULL; i++) {
         if (strcmp(word, stops[i]) == 0) {
             return 1;
         }
@@ -27,10 +27,9 @@ static int isStopWord(const char *word) {
     return 0;
 }
 
+// Check if we already saved this keyword
 static int keywordSeen(const char *word) {
-    int i;
-
-    for (i = 0; i < keywordCount; i++) {
+    for (int i = 0; i < keywordCount; i++) {
         if (strcmp(keywords[i], word) == 0) {
             return 1;
         }
@@ -38,12 +37,10 @@ static int keywordSeen(const char *word) {
     return 0;
 }
 
+// Pick useful words from the question
 void collectKeywords(char *buffer) {
-    char *token;
-    int i;
-
     keywordCount = 0;
-    for (i = 0; buffer[i] != '\0'; i++) {
+    for (int i = 0; buffer[i] != '\0'; i++) {
         if (isalpha((unsigned char)buffer[i])) {
             buffer[i] = (char)tolower((unsigned char)buffer[i]);
         } else {
@@ -51,7 +48,7 @@ void collectKeywords(char *buffer) {
         }
     }
 
-    token = strtok(buffer, " ");
+    char *token = strtok(buffer, " ");
     while (token != NULL && keywordCount < MAX_KEYWORDS) {
         if (strlen(token) >= 3 && !isStopWord(token) && !keywordSeen(token)) {
             snprintf(keywords[keywordCount], MAX_WORD, "%s", token);
@@ -61,46 +58,44 @@ void collectKeywords(char *buffer) {
     }
 }
 
+// Copy the text in lowercase
 static void toLowerCopy(const char *src, char *dest, int destSize) {
     int i;
-
     for (i = 0; src[i] != '\0' && i < destSize - 1; i++) {
         dest[i] = (char)tolower((unsigned char)src[i]);
     }
     dest[i] = '\0';
 }
 
-/* A keyword counts only as a whole word, not inside a longer word. */
+// Match a full word, like solar in solar energy
 static int containsWord(const char *text, const char *word) {
     int wordLength = (int)strlen(word);
-    const char *found = text;
-
     if (wordLength == 0) {
         return 0;
     }
 
-    while ((found = strstr(found, word)) != NULL) {
+    const char *found = strstr(text, word);
+    while (found != NULL) {
         int atStart = (found == text) || !isalpha((unsigned char)found[-1]);
         int atEnd = !isalpha((unsigned char)found[wordLength]);
         if (atStart && atEnd) {
             return 1;
         }
-        found = found + 1;
+        found = strstr(found + 1, word);
     }
     return 0;
 }
 
-/* Title match: +2. Snippet match: +1. Each keyword is counted once per field. */
+// Add 2 for a title match and 1 for a description match
 int calculateScore(const char *title, const char *snippet) {
     char lowerTitle[MAX_TITLE];
     char lowerSnippet[MAX_SNIPPET];
     int score = 0;
-    int i;
 
     toLowerCopy(title, lowerTitle, MAX_TITLE);
     toLowerCopy(snippet, lowerSnippet, MAX_SNIPPET);
 
-    for (i = 0; i < keywordCount; i++) {
+    for (int i = 0; i < keywordCount; i++) {
         if (containsWord(lowerTitle, keywords[i])) {
             score = score + 2;
         }

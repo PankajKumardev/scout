@@ -14,9 +14,7 @@
 
 struct Source {
     int id;
-    char title[MAX_TITLE];
     char url[MAX_URL];
-    char snippet[MAX_SNIPPET];
     int score;
     struct Source *next;
 };

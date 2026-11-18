@@ -3,16 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Read a line and remove the newline
 static int readLine(char *buffer, int size) {
-    int extra;
-    size_t length;
-
     if (fgets(buffer, size, stdin) == NULL) {
         return 0;
     }
 
-    length = strlen(buffer);
+    size_t length = strlen(buffer);
     if (length == 0 || buffer[length - 1] != '\n') {
+        // Discard the rest of a long input line
+        int extra;
         while ((extra = getchar()) != '\n' && extra != EOF) {
         }
     }
@@ -27,17 +27,15 @@ static int readLine(char *buffer, int size) {
     return 1;
 }
 
+// Start here: read pages, rank them and print the results
 int main(void) {
+    // Store incoming pages in memory
     struct Incoming incoming[MAX_SOURCES];
     struct Ranked ranked[MAX_SOURCES];
     struct Queue queue = {0};
     struct Source *head = NULL;
     char question[MAX_QUESTION];
     char line[MAX_LINE];
-    int count;
-    int rankedCount;
-    int picked = 0;
-    int i;
 
     if (!readLine(question, MAX_QUESTION)) {
         fprintf(stderr, "Missing question\n");
@@ -48,7 +46,8 @@ int main(void) {
         return 1;
     }
 
-    count = atoi(line);
+    // Convert the page count from text to a number
+    int count = atoi(line);
     if (count < 0) {
         count = 0;
     }
@@ -57,7 +56,7 @@ int main(void) {
         count = MAX_SOURCES;
     }
 
-    for (i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++) {
         char idLine[32];
         struct Incoming *item = &incoming[i];
 
@@ -71,13 +70,13 @@ int main(void) {
         enqueue(&queue, i);
     }
 
+    // Get keywords from the question
     collectKeywords(question);
 
     while (queue.front < queue.rear) {
         int index = dequeue(&queue);
         struct Incoming *item = &incoming[index];
         int id = item->id;
-        struct Source *updated;
 
         fprintf(stderr, "Dequeued id %d\n", id);
         if (item->url[0] == '\0') {
@@ -89,7 +88,7 @@ int main(void) {
             continue;
         }
 
-        updated = addSource(head, item);
+        struct Source *updated = addSource(head, item);
         if (updated == NULL) {
             freeSources(head);
             return 1;
@@ -97,22 +96,23 @@ int main(void) {
         head = updated;
     }
 
-    rankedCount = copyScores(head, ranked);
+    // Copy the scores, then sort them
+    int rankedCount = copyScores(head, ranked);
     bubbleSort(ranked, rankedCount);
 
     fprintf(stderr, "Sorted:");
-    for (i = 0; i < rankedCount; i++) {
+    for (int i = 0; i < rankedCount; i++) {
         fprintf(stderr, " %d(%d)", ranked[i].id, ranked[i].score);
     }
     fprintf(stderr, "\n");
 
-    for (i = 0; i < rankedCount && picked < MAX_PICK; i++) {
-        if (ranked[i].score == 0 && picked >= MIN_PICK) {
+    for (int i = 0; i < rankedCount && i < MAX_PICK; i++) {
+        if (ranked[i].score == 0 && i >= MIN_PICK) {
             break;
         }
+        // Send IDs and scores to Next.js through stdout
         printf("%d %d\n", ranked[i].id, ranked[i].score);
         fprintf(stderr, "Selected id %d score %d\n", ranked[i].id, ranked[i].score);
-        picked = picked + 1;
     }
 
     freeSources(head);

@@ -313,7 +313,7 @@ Release every allocated node, flush the output stream and signal success.
 ```text
  118      freeSources(head);
  119      fflush(stdout);
- 120      return 0;
+ 120      return 0;x
  121  }
 ```
 
